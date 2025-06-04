@@ -368,29 +368,6 @@ echo "🌐 Access your application:"
 echo "- URL: http://$(hostname -I | awk '{print $1}'):8000"
 echo "- Local: http://localhost:8000"
 echo ""
-# Extract and display admin credentials at the very end
-ADMIN_USERNAME=$(echo "$SETUP_OUTPUT" | grep "Username:" | sed 's/^Username: //')
-ADMIN_PASSWORD=$(echo "$SETUP_OUTPUT" | grep "Password:" | sed 's/^Password: //')
-
-if [ -n "$ADMIN_USERNAME" ] && [ -n "$ADMIN_PASSWORD" ]; then
-    echo ""
-    echo "🔑 IMPORTANT: ADMIN LOGIN CREDENTIALS"
-    echo "============================================================"
-    echo "Username: $ADMIN_USERNAME"
-    echo "Password: $ADMIN_PASSWORD"
-    echo "============================================================"
-    echo "⚠️  SAVE THIS PASSWORD - You will need it to log in!"
-    echo "💡 Add your email address after first login in your profile."
-    echo "============================================================"
-else
-    echo ""
-    echo "🔑 Admin Login:"
-    echo "- Admin credentials were created during setup"
-    echo "- Check the application logs for credentials"
-fi
-echo ""
-echo "🌐 Login URL: http://$(hostname -I | awk '{print $1}'):8000/auth/login"
-echo ""
 echo "📁 Important paths:"
 echo "- Application: $APP_DIR"
 echo "- Database: $DATA_DIR/f1fantasy.db"
@@ -408,4 +385,25 @@ echo "- Application is ready to use with auto-generated configuration"
 echo "- To enable HTTPS, update .env file and set SESSION_COOKIE_SECURE=True"
 echo "- SQLite database is stored locally"
 echo "- Application is accessible on port 8000"
-echo "" 
+echo ""
+
+# Extract and display admin credentials at the very end
+ADMIN_USERNAME=$(echo "$SETUP_OUTPUT" | grep "Username:" | sed 's/^Username: //')
+ADMIN_PASSWORD=$(echo "$SETUP_OUTPUT" | grep "Password:" | sed 's/^Password: //')
+
+if [ -n "$ADMIN_USERNAME" ] && [ -n "$ADMIN_PASSWORD" ]; then
+    echo "🔑 IMPORTANT: ADMIN LOGIN CREDENTIALS"
+    echo "============================================================"
+    echo "Username: $ADMIN_USERNAME"
+    echo "Password: $ADMIN_PASSWORD"
+    echo "============================================================"
+    echo "⚠️  SAVE THIS PASSWORD - You will need it to log in!"
+    echo "💡 Add your email address after first login in your profile."
+    echo "============================================================"
+else
+    echo "🔑 Admin Login:"
+    echo "- Admin credentials were created during setup"
+    echo "- Check the application logs for credentials"
+fi
+echo ""
+echo "🌐 Login URL: http://$(hostname -I | awk '{print $1}'):8000/auth/login" 
