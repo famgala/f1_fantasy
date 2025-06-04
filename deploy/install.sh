@@ -54,8 +54,8 @@ TEMP_DIR="/tmp/f1fantasy_install"
 echo "📦 Installing system dependencies..."
 
 # Update system
-confirm_action "Update system packages (apt update && apt upgrade)" "Ensures all system packages are up to date before installation"
-apt update && apt upgrade -y
+confirm_action "Update system package list (apt update)" "Refreshes the package list to ensure we can install the latest versions of dependencies"
+apt update
 
 # Install required packages (simplified for test stack)
 confirm_action "Install system packages (Python3, pip, git, etc.)" "Required system packages for running the F1 Fantasy application"
@@ -118,244 +118,17 @@ if [ ! -d "$APP_DIR/deploy" ]; then
     exit 1
 fi
 
+if [ ! -d "$APP_DIR/f1_fantasy" ]; then
+    echo "❌ Missing f1_fantasy/ package directory in the repository"
+    exit 1
+fi
+
+echo "✅ Application structure validated"
+
 echo "🔧 Creating missing application structure..."
 
-# Create f1_fantasy package if it doesn't exist
-if [ ! -d "$APP_DIR/f1_fantasy" ]; then
-    echo "📦 Creating f1_fantasy package structure..."
-    sudo -u "$APP_USER" mkdir -p "$APP_DIR/f1_fantasy"
-    
-    # Create __init__.py
-    sudo -u "$APP_USER" cat > "$APP_DIR/f1_fantasy/__init__.py" << 'EOF'
-"""F1 Fantasy Application Package"""
-__version__ = "0.1.0"
-EOF
-
-    # Create minimal app.py
-    sudo -u "$APP_USER" cat > "$APP_DIR/f1_fantasy/app.py" << 'EOF'
-from flask import Flask, render_template, redirect, url_for
-from flask_security import current_user, login_required
-from f1_fantasy.models import db
-from f1_fantasy.security import init_security, create_default_roles
-from f1_fantasy.setup import init_setup
-import os
-
-def create_app(config=None):
-    app = Flask(__name__, 
-                template_folder=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'))
-    
-    # Load configuration
-    app.config.update(
-        SQLALCHEMY_DATABASE_URI=os.getenv('DATABASE_URL', 'sqlite:///f1_fantasy.db'),
-        SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        SECRET_KEY=os.getenv('SECRET_KEY', 'dev-key'),
-        SECURITY_PASSWORD_SALT=os.getenv('SECURITY_PASSWORD_SALT', 'dev-salt'),
-    )
-    
-    if config:
-        app.config.update(config)
-    
-    # Initialize database
-    db.init_app(app)
-    
-    # Initialize security
-    init_security(app)
-    
-    # Create database tables and run setup wizard
-    with app.app_context():
-        db.create_all()
-        create_default_roles()
-        init_setup(app)
-    
-    # Routes
-    @app.route('/')
-    def index():
-        if current_user.is_authenticated:
-            return redirect(url_for('dashboard'))
-        return render_template('index.html')
-    
-    @app.route('/dashboard')
-    @login_required
-    def dashboard():
-        return render_template('dashboard.html')
-    
-    return app
-EOF
-
-    # Create minimal models.py
-    sudo -u "$APP_USER" cat > "$APP_DIR/f1_fantasy/models.py" << 'EOF'
-from datetime import datetime
-from flask_sqlalchemy import SQLAlchemy
-from flask_security import UserMixin, RoleMixin
-
-db = SQLAlchemy()
-
-# Association table for user roles
-roles_users = db.Table('roles_users',
-    db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
-    db.Column('role_id', db.Integer(), db.ForeignKey('role.id'))
-)
-
-class Role(db.Model, RoleMixin):
-    __tablename__ = 'role'
-    id = db.Column(db.Integer(), primary_key=True)
-    name = db.Column(db.String(80), unique=True)
-    description = db.Column(db.String(255))
-
-class User(db.Model, UserMixin):
-    __tablename__ = 'user'
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(255), unique=True, nullable=False)
-    username = db.Column(db.String(255), unique=True, nullable=False)
-    password = db.Column(db.String(255), nullable=False)
-    active = db.Column(db.Boolean(), default=True)
-    fs_uniquifier = db.Column(db.String(255), unique=True, nullable=False)
-    confirmed_at = db.Column(db.DateTime())
-    
-    # Flask-Security tracking fields
-    last_login_at = db.Column(db.DateTime())
-    current_login_at = db.Column(db.DateTime())
-    last_login_ip = db.Column(db.String(100))
-    current_login_ip = db.Column(db.String(100))
-    login_count = db.Column(db.Integer())
-    
-    roles = db.relationship('Role', secondary=roles_users,
-                          backref=db.backref('users', lazy='dynamic'))
-EOF
-
-    # Create minimal security.py
-    sudo -u "$APP_USER" cat > "$APP_DIR/f1_fantasy/security.py" << 'EOF'
-import secrets
-from datetime import datetime
-from flask import Flask
-from flask_security import Security, SQLAlchemyUserDatastore, hash_password
-from f1_fantasy.models import db, User, Role
-
-# Initialize Flask-Security
-user_datastore = SQLAlchemyUserDatastore(db, User, Role)
-security = Security()
-
-def init_security(app: Flask) -> None:
-    """Initialize security for the Flask application."""
-    app.config.update(
-        SECURITY_URL_PREFIX='/auth',
-        SECURITY_LOGIN_URL='/login',
-        SECURITY_LOGOUT_URL='/logout',
-        SECURITY_REGISTER_URL='/register',
-        SECURITY_REGISTERABLE=True,
-        SECURITY_RECOVERABLE=True,
-        SECURITY_CHANGEABLE=True,
-        SECURITY_CONFIRMABLE=False,
-        SECURITY_TRACKABLE=True,
-        SECURITY_PASSWORD_HASH='bcrypt',
-        SECURITY_USERNAME_ENABLE=True,
-        SECURITY_USERNAME_REQUIRED=True,
-        SECURITY_PASSWORD_LENGTH_MIN=8,
-        SECURITY_EMAIL_VALIDATOR_ARGS={"check_deliverability": False},
-        SECURITY_SEND_REGISTER_EMAIL=False,
-        SECURITY_SEND_PASSWORD_CHANGE_EMAIL=False,
-        SECURITY_SEND_PASSWORD_RESET_EMAIL=False,
-    )
-    
-    security.init_app(app, user_datastore)
-
-def create_default_roles():
-    """Create default roles."""
-    if not user_datastore.find_role('admin'):
-        user_datastore.create_role(name='admin', description='Administrator')
-    if not user_datastore.find_role('user'):
-        user_datastore.create_role(name='user', description='Regular User')
-    db.session.commit()
-
-def create_admin_user(email: str, password: str, username: str = None) -> None:
-    """Create an admin user if it doesn't exist."""
-    if not user_datastore.find_user(email=email):
-        if not username:
-            username = email.split('@')[0]
-        user_datastore.create_user(
-            email=email,
-            username=username,
-            password=hash_password(password),
-            roles=['admin'],
-            confirmed_at=datetime.now(),
-            fs_uniquifier=secrets.token_hex(16)
-        )
-        db.session.commit()
-EOF
-
-    # Create minimal setup.py
-    sudo -u "$APP_USER" cat > "$APP_DIR/f1_fantasy/setup.py" << 'EOF'
-import os
-import secrets
-from datetime import datetime
-from f1_fantasy.models import db, User, Role
-from f1_fantasy.security import user_datastore
-from flask_security.utils import hash_password
-
-def init_setup(app):
-    """Initialize setup wizard."""
-    setup_file = os.path.join(app.instance_path, 'setup_complete')
-    
-    if not os.path.exists(setup_file):
-        print("=== F1 Fantasy Setup Wizard ===")
-        
-        # Create admin user
-        admin_email = "test@famgala.com"
-        admin_username = "test"
-        admin_password = secrets.token_urlsafe(10)
-        
-        print(f"Admin email address: {admin_email}")
-        print(f"Admin username: {admin_username}")
-        print(f"✅ Generated secure admin password: {admin_password}")
-        
-        # Create roles
-        admin_role = Role.query.filter_by(name='admin').first()
-        if not admin_role:
-            admin_role = Role(name='admin', description='Administrator')
-            db.session.add(admin_role)
-            
-        user_role = Role.query.filter_by(name='user').first()
-        if not user_role:
-            user_role = Role(name='user', description='Regular User')
-            db.session.add(user_role)
-        
-        db.session.commit()
-        
-        # Create admin user
-        existing_admin = User.query.filter_by(email=admin_email).first()
-        if not existing_admin:
-            admin = User(
-                email=admin_email,
-                username=admin_username,
-                password=hash_password(admin_password),
-                active=True,
-                confirmed_at=datetime.now(),
-                fs_uniquifier=secrets.token_hex(16)
-            )
-            admin.roles.append(admin_role)
-            db.session.add(admin)
-            db.session.commit()
-            print(f"Admin user created: {admin_email}")
-        
-        print("Setup completed successfully!")
-        print("=" * 60)
-        print("🔑 IMPORTANT: ADMIN LOGIN CREDENTIALS")
-        print("=" * 60)
-        print(f"Email:    {admin_email}")
-        print(f"Username: {admin_username}")
-        print(f"Password: {admin_password}")
-        print("=" * 60)
-        print("⚠️  SAVE THIS PASSWORD - You will need it to log in!")
-        print("=" * 60)
-        
-        # Mark setup as complete
-        os.makedirs(os.path.dirname(setup_file), exist_ok=True)
-        with open(setup_file, 'w') as f:
-            f.write('1')
-EOF
-
-    echo "✅ Created minimal f1_fantasy package structure"
-fi
+# The f1_fantasy package files now exist in the repository
+# Only create templates if they don't exist
 
 # Create basic templates if they don't exist
 if [ ! -d "$APP_DIR/templates" ]; then
