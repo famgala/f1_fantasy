@@ -3,6 +3,9 @@ bcrypt==4.3.0
 blinker==1.9.0
 click==8.2.1
 fastf1==3.5.3
+Flask==3.1.1
+Flask-Security-Too==5.5.2
+Flask-SQLAlchemy==3.1.1
 gunicorn==23.0.0
 itsdangerous==2.2.0
 libpass==1.9.1.post0
