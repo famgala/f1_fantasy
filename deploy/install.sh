@@ -369,7 +369,7 @@ echo "- URL: http://$(hostname -I | awk '{print $1}'):8000"
 echo "- Local: http://localhost:8000"
 echo ""
 # Extract and display admin credentials
-ADMIN_CREDS=$(echo "$SETUP_OUTPUT" | sed -n '/🔑 IMPORTANT: ADMIN LOGIN CREDENTIALS/,/^=*$/p')
+ADMIN_CREDS=$(echo "$SETUP_OUTPUT" | sed -n '/🔑 IMPORTANT: ADMIN LOGIN CREDENTIALS/,/============================================================/p')
 if [ -n "$ADMIN_CREDS" ]; then
     echo "$ADMIN_CREDS"
 else
