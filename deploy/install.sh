@@ -105,131 +105,6 @@ chown -R "$APP_USER:$APP_USER" "$APP_DIR"
 # Clean up temp directory
 rm -rf "$TEMP_DIR"
 
-echo "🔧 Validating application structure..."
-
-# Ensure we have the required files
-if [ ! -f "$APP_DIR/requirements.txt" ]; then
-    echo "❌ Missing requirements.txt file in the repository"
-    exit 1
-fi
-
-if [ ! -d "$APP_DIR/deploy" ]; then
-    echo "❌ Missing deploy/ directory in the repository"
-    exit 1
-fi
-
-if [ ! -d "$APP_DIR/f1_fantasy" ]; then
-    echo "❌ Missing f1_fantasy/ package directory in the repository"
-    exit 1
-fi
-
-echo "✅ Application structure validated"
-
-echo "🔧 Creating missing application structure..."
-
-# The f1_fantasy package files now exist in the repository
-# Only create templates if they don't exist
-
-# Create basic templates if they don't exist
-if [ ! -d "$APP_DIR/templates" ]; then
-    echo "📄 Creating basic templates..."
-    sudo -u "$APP_USER" mkdir -p "$APP_DIR/templates/security"
-    
-    # Create base template
-    sudo -u "$APP_USER" cat > "$APP_DIR/templates/base.html" << 'EOF'
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>F1 Fantasy League</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">F1 Fantasy League</a>
-            <ul class="navbar-nav ms-auto">
-                {% if current_user.is_authenticated %}
-                    <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/auth/logout">Logout</a></li>
-                {% else %}
-                    <li class="nav-item"><a class="nav-link" href="/auth/login">Login</a></li>
-                {% endif %}
-            </ul>
-        </div>
-    </nav>
-    <main class="container mt-4">
-        {% block content %}{% endblock %}
-    </main>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-EOF
-
-    # Create index template
-    sudo -u "$APP_USER" cat > "$APP_DIR/templates/index.html" << 'EOF'
-{% extends "base.html" %}
-{% block content %}
-<div class="jumbotron">
-    <h1>Welcome to F1 Fantasy League</h1>
-    <p class="lead">Create your fantasy F1 team and compete with friends!</p>
-    <a class="btn btn-primary btn-lg" href="/auth/login">Get Started</a>
-</div>
-{% endblock %}
-EOF
-
-    # Create dashboard template
-    sudo -u "$APP_USER" cat > "$APP_DIR/templates/dashboard.html" << 'EOF'
-{% extends "base.html" %}
-{% block content %}
-<h1>Dashboard</h1>
-<p>Welcome to your F1 Fantasy dashboard, {{ current_user.username }}!</p>
-{% endblock %}
-EOF
-
-    # Create login template
-    sudo -u "$APP_USER" cat > "$APP_DIR/templates/security/login.html" << 'EOF'
-{% extends "base.html" %}
-{% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header"><h4>Login</h4></div>
-            <div class="card-body">
-                <form action="{{ url_for_security('login') }}" method="post">
-                    {{ login_user_form.hidden_tag() }}
-                    {% if login_user_form.errors %}
-                        <div class="alert alert-danger">
-                            {% for field, errors in login_user_form.errors.items() %}
-                                {% for error in errors %}
-                                    <div>{{ error }}</div>
-                                {% endfor %}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    <div class="mb-3">
-                        {{ login_user_form.email.label(class="form-label") }}
-                        {{ login_user_form.email(class="form-control") }}
-                    </div>
-                    <div class="mb-3">
-                        {{ login_user_form.password.label(class="form-label") }}
-                        {{ login_user_form.password(class="form-control") }}
-                    </div>
-                    <div class="d-grid">
-                        {{ login_user_form.submit(class="btn btn-primary") }}
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-EOF
-
-    echo "✅ Created basic templates"
-fi
-
 echo "🐍 Setting up Python environment..."
 
 # Create virtual environment as app user
@@ -247,10 +122,7 @@ sudo -u "$APP_USER" "$APP_DIR/venv/bin/python" -m pip install -r "$APP_DIR/requi
 # Ensure no editable installs and fix any permission issues
 sudo -u "$APP_USER" "$APP_DIR/venv/bin/python" -m pip uninstall -y f1-fantasy 2>/dev/null || true
 
-# Set proper permissions on the development directory to avoid permission errors
-if [ -d "/home/soldev/dev/f1" ]; then
-    sudo chmod -R o+r /home/soldev/dev/f1 2>/dev/null || true
-fi
+# Dependencies installed successfully
 
 echo "⚙️ Configuring services..."
 
@@ -330,16 +202,7 @@ with application.app_context():
         print(\"WARNING: No admin user found after setup\")
 '"
 
-echo "🔥 Configuring firewall..."
-
-# Configure UFW firewall (allow port 8000 for direct access)
-confirm_action "Configure system firewall (UFW)" "Sets up firewall rules to allow SSH and port 8000 (F1 Fantasy), blocks other incoming connections for security"
-ufw --force reset
-ufw default deny incoming
-ufw default allow outgoing
-ufw allow ssh
-ufw allow 8000
-ufw --force enable
+echo "✅ Setup completed successfully"
 
 echo "🚀 Starting services..."
 
@@ -385,6 +248,7 @@ echo "- Application is ready to use with auto-generated configuration"
 echo "- To enable HTTPS, update .env file and set SESSION_COOKIE_SECURE=True"
 echo "- SQLite database is stored locally"
 echo "- Application is accessible on port 8000"
+echo "- Configure your firewall to allow port 8000 if needed"
 echo ""
 
 # Extract and display admin credentials at the very end

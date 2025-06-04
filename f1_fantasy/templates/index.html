@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Home - F1 Fantasy{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-3">
+                    Welcome to F1 Fantasy
+                </h1>
+                <p class="lead mb-4">
+                    Experience the thrill of Formula 1 fantasy racing. Build your dream team, 
+                    compete with friends, and prove you have what it takes to be a champion.
+                </p>
+                {% if not current_user.is_authenticated %}
+                    <div class="d-flex flex-column flex-sm-row gap-3">
+                        <a href="{{ url_for_security('register') }}" class="btn btn-light btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Get Started
+                        </a>
+                        <a href="{{ url_for_security('login') }}" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="d-flex flex-column flex-sm-row gap-3">
+                        <a href="#" class="btn btn-light btn-lg">
+                            <i class="fas fa-users me-2"></i>My Team
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-trophy me-2"></i>View Leagues
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-flag-checkered fa-10x mb-3" style="opacity: 0.8;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="fw-bold mb-3">Why Choose F1 Fantasy?</h2>
+                <p class="text-muted">
+                    Join thousands of F1 fans in the ultimate fantasy racing experience
+                </p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-primary text-white rounded-circle mx-auto mb-3" 
+                             style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-trophy fa-2x"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Compete & Win</h4>
+                        <p class="text-muted">
+                            Create leagues with friends or join public competitions. 
+                            Climb the leaderboards and claim victory.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-success text-white rounded-circle mx-auto mb-3" 
+                             style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Real-Time Data</h4>
+                        <p class="text-muted">
+                            Get live race updates, driver statistics, and performance 
+                            analytics to make informed decisions.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-info text-white rounded-circle mx-auto mb-3" 
+                             style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Team Management</h4>
+                        <p class="text-muted">
+                            Build your dream team with drivers and constructors. 
+                            Manage transfers and optimize your strategy.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if current_user.is_authenticated %}
+<!-- Dashboard Section for Logged In Users -->
+<section class="bg-light py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card border-0 shadow">
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h3 class="fw-bold mb-2">
+                                    Welcome back, {{ current_user.username or current_user.email }}!
+                                </h3>
+                                <p class="text-muted mb-3">
+                                    Ready to continue your F1 Fantasy journey? Check your team status and upcoming races.
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <a href="#" class="btn btn-primary">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% else %}
+<!-- Call to Action for Non-Authenticated Users -->
+<section class="bg-light py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="fw-bold mb-3">Ready to Start Racing?</h2>
+                <p class="text-muted mb-4">
+                    Join the F1 Fantasy community today and start building your championship-winning team.
+                </p>
+                <a href="{{ url_for_security('register') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-flag-checkered me-2"></i>Start Your Journey
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %} 

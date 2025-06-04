@@ -22,7 +22,11 @@ def init_security(app: Flask) -> None:
         SECURITY_TRACKABLE=True,
         SECURITY_PASSWORD_HASH='bcrypt',
         SECURITY_USERNAME_ENABLE=True,
-        SECURITY_USERNAME_REQUIRED=True,
+        SECURITY_USERNAME_REQUIRED=False,
+        SECURITY_USER_IDENTITY_ATTRIBUTES=[
+            {"email": {"mapper": lambda x: x.lower(), "case_insensitive": True}},
+            {"username": {"mapper": lambda x: x.lower(), "case_insensitive": True}}
+        ],
         SECURITY_PASSWORD_LENGTH_MIN=8,
         SECURITY_EMAIL_VALIDATOR_ARGS={"check_deliverability": False},
         SECURITY_SEND_REGISTER_EMAIL=False,

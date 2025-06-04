@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+{% block title %}Sign In - F1 Fantasy{% endblock %}
+
+{% block extra_head %}
+<style>
+.login-container {
+    min-height: calc(100vh - 120px);
+}
+
+.form-control-lg {
+    border-radius: 0.5rem;
+    padding: 12px 16px;
+}
+
+.btn-lg {
+    border-radius: 0.5rem;
+    padding: 12px 24px;
+}
+
+.alert {
+    border-radius: 0.5rem;
+}
+
+.brand-side {
+    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+}
+
+.brand-features .feature-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+}
+
+@media (max-width: 991.98px) {
+    .brand-side {
+        min-height: 200px;
+    }
+    
+    .login-form-side {
+        margin-top: -30px;
+        background: white;
+        border-radius: 1rem 1rem 0 0;
+        position: relative;
+        z-index: 2;
+    }
+}
+
+.password-toggle {
+    cursor: pointer;
+    border-left: none;
+}
+
+.form-floating .form-control:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.login-card {
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row g-0 login-container">
+        <!-- Left side - Branding -->
+        <div class="col-lg-6 brand-side d-flex align-items-center justify-content-center">
+            <div class="text-center text-white p-5">
+                <div class="mb-4">
+                    <i class="fas fa-flag-checkered fa-5x mb-3"></i>
+                    <h1 class="display-4 fw-bold">F1 Fantasy</h1>
+                    <p class="lead">Experience the thrill of Formula 1 fantasy racing</p>
+                </div>
+                
+                <div class="row brand-features mt-5 d-none d-lg-flex">
+                    <div class="col-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-trophy fa-2x"></i>
+                        </div>
+                        <h6>Championships</h6>
+                        <small class="text-white-50">Compete for glory</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                        <h6>Teams</h6>
+                        <small class="text-white-50">Build your dream team</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                        <h6>Analytics</h6>
+                        <small class="text-white-50">Track performance</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right side - Login Form -->
+        <div class="col-lg-6 login-form-side d-flex align-items-center justify-content-center p-4">
+            <div class="w-100" style="max-width: 420px;">
+                <div class="card login-card">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <h2 class="fw-bold mb-2">Welcome Back</h2>
+                            <p class="text-muted">Sign in to your F1 Fantasy account</p>
+                        </div>
+                        
+                        <!-- Error Messages -->
+                        {% if form.errors %}
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Login Failed:</strong>
+                                {% for field, errors in form.errors.items() %}
+                                    {% for error in errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                {% endfor %}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endif %}
+
+                        <form method="POST" class="needs-validation" novalidate>
+                            {{ form.hidden_tag() }}
+                            
+                            <!-- Username/Email Field -->
+                            <div class="form-floating mb-3">
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       id="email" 
+                                       name="email" 
+                                       placeholder="Username or Email"
+                                       value="{{ form.email.data or '' }}"
+                                       required
+                                       autocomplete="username">
+                                <label for="email">
+                                    <i class="fas fa-user me-2"></i>Username or Email
+                                </label>
+                                <div class="form-text">
+                                    <small class="text-muted">You can use either your username or email address</small>
+                                </div>
+                            </div>
+                            
+                            <!-- Password Field -->
+                            <div class="form-floating mb-3">
+                                <div class="input-group">
+                                    <div class="form-floating flex-grow-1">
+                                        <input type="password" 
+                                               class="form-control form-control-lg" 
+                                               id="password" 
+                                               name="password" 
+                                               placeholder="Password"
+                                               required
+                                               autocomplete="current-password"
+                                               style="border-right: none;">
+                                        <label for="password">
+                                            <i class="fas fa-lock me-2"></i>Password
+                                        </label>
+                                    </div>
+                                    <button class="btn btn-outline-secondary password-toggle" 
+                                            type="button" 
+                                            id="togglePassword"
+                                            tabindex="-1">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Remember Me -->
+                            <div class="form-check mb-4">
+                                <input type="checkbox" 
+                                       class="form-check-input" 
+                                       id="remember" 
+                                       name="remember"
+                                       {{ 'checked' if form.remember.data }}>
+                                <label class="form-check-label" for="remember">
+                                    Keep me signed in
+                                </label>
+                            </div>
+                            
+                            <!-- Submit Button -->
+                            <div class="d-grid mb-4">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                                </button>
+                            </div>
+                            
+                            <!-- Help Links -->
+                            <div class="text-center">
+                                <p class="text-muted mb-2">Need help?</p>
+                                <div class="d-flex justify-content-center gap-3">
+                                    {% if config.SECURITY_RECOVERABLE %}
+                                        <a href="{{ url_for_security('forgot_password') }}" class="btn btn-link btn-sm p-0">
+                                            <i class="fas fa-key me-1"></i>Forgot Password?
+                                        </a>
+                                    {% endif %}
+                                    {% if config.SECURITY_REGISTERABLE %}
+                                        <a href="{{ url_for_security('register') }}" class="btn btn-link btn-sm p-0">
+                                            <i class="fas fa-user-plus me-1"></i>Create Account
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Password toggle functionality
+document.getElementById('togglePassword').addEventListener('click', function() {
+    const password = document.getElementById('password');
+    const icon = this.querySelector('i');
+    
+    if (password.type === 'password') {
+        password.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+        this.setAttribute('aria-label', 'Hide password');
+    } else {
+        password.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+        this.setAttribute('aria-label', 'Show password');
+    }
+});
+
+// Form validation
+(function() {
+    'use strict';
+    var forms = document.querySelectorAll('.needs-validation');
+    Array.prototype.slice.call(forms).forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+})();
+
+// Auto-focus first input
+document.addEventListener('DOMContentLoaded', function() {
+    const firstInput = document.getElementById('email');
+    if (firstInput && !firstInput.value) {
+        firstInput.focus();
+    }
+});
+</script>
+{% endblock %} 
