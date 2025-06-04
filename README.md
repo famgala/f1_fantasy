@@ -24,21 +24,28 @@ A comprehensive Formula 1 fantasy league web application built with Flask. Creat
 
 ### Option 1: Automated Installation (Recommended)
 
-1. **Download and run the installer**:
-   ```bash
-   curl -sSL https://raw.githubusercontent.com/famgala/f1_fantasy/main/deploy/install.sh | sudo bash
-   ```
+**Fully automated (no prompts)**:
+```bash
+curl -sSL https://raw.githubusercontent.com/famgala/f1_fantasy/main/deploy/install.sh | sudo bash
+```
 
-   **Or if you prefer to review the script first**:
-   ```bash
-   wget https://raw.githubusercontent.com/famgala/f1_fantasy/main/deploy/install.sh
-   chmod +x install.sh
-   sudo ./install.sh
-   ```
+**Or if you prefer to review the script first**:
+```bash
+wget https://raw.githubusercontent.com/famgala/f1_fantasy/main/deploy/install.sh
+chmod +x install.sh
+sudo ./install.sh
+```
 
-2. **Access your application**:
-   - Open your browser to `http://your-server-ip:8000`
-   - Login with the admin credentials displayed during setup
+**Interactive mode (with confirmation prompts)**:
+```bash
+wget https://raw.githubusercontent.com/famgala/f1_fantasy/main/deploy/install.sh
+chmod +x install.sh
+sudo ./install.sh --interactive
+```
+
+**Access your application**:
+- Open your browser to `http://your-server-ip:8000`
+- Login with the admin credentials displayed during setup
 
 The installer will:
 - ✅ Clone the latest code from GitHub

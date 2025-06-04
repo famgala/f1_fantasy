@@ -7,26 +7,38 @@ set -e
 echo "🏁 F1 Fantasy Test Stack Installation 🏁"
 echo "=========================================="
 
+# Check for interactive mode flag
+INTERACTIVE_MODE=false
+if [[ "$1" == "--interactive" ]]; then
+    INTERACTIVE_MODE=true
+    echo "ℹ️ Running in interactive mode - you will be prompted before each action"
+fi
+
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then
     echo "❌ Please run this script as root (use sudo)"
     exit 1
 fi
 
-# Function to prompt for confirmation
+# Function to prompt for confirmation (only in interactive mode)
 confirm_action() {
     local action="$1"
     local reason="$2"
-    echo ""
-    echo "🔐 SUDO OPERATION REQUIRED:"
-    echo "Action: $action"
-    echo "Reason: $reason"
-    echo ""
-    read -p "Do you want to proceed? (y/N): " -n 1 -r
-    echo ""
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "❌ Operation cancelled by user"
-        exit 1
+    
+    if [ "$INTERACTIVE_MODE" = true ]; then
+        echo ""
+        echo "🔐 SUDO OPERATION REQUIRED:"
+        echo "Action: $action"
+        echo "Reason: $reason"
+        echo ""
+        read -p "Do you want to proceed? (y/N): " -n 1 -r
+        echo ""
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "❌ Operation cancelled by user"
+            exit 1
+        fi
+    else
+        echo "▶️ $action"
     fi
 }
 
