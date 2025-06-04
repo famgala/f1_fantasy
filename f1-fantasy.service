@@ -1,0 +1,14 @@
+[Unit]
+Description=F1 Fantasy League Application
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/f1-fantasy
+Environment="PATH=/var/www/f1-fantasy/venv/bin"
+EnvironmentFile=/var/www/f1-fantasy/.env
+ExecStart=/var/www/f1-fantasy/venv/bin/gunicorn --workers 3 --bind unix:f1-fantasy.sock -m 007 app:app
+
+[Install]
+WantedBy=multi-user.target 
