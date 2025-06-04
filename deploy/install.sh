@@ -255,19 +255,43 @@ echo ""
 ADMIN_USERNAME=$(echo "$SETUP_OUTPUT" | grep "Username:" | sed 's/^Username: //')
 ADMIN_PASSWORD=$(echo "$SETUP_OUTPUT" | grep "Password:" | sed 's/^Password: //')
 
+# If extraction failed, try to get credentials directly from the database
+if [ -z "$ADMIN_USERNAME" ] || [ -z "$ADMIN_PASSWORD" ]; then
+    echo "🔍 Retrieving admin credentials from database..."
+    CRED_OUTPUT=$(sudo -u "$APP_USER" bash -c "source venv/bin/activate && python -c '
+import os
+os.environ[\"FLASK_ENV\"] = \"production\"
+from deploy.wsgi import application
+with application.app_context():
+    from f1_fantasy.models import User
+    admin_user = User.query.filter_by(username=\"admin\").first()
+    if admin_user:
+        print(f\"Username: {admin_user.username}\")
+        # Note: Cannot retrieve plain password from database (it is hashed)
+        print(\"Password: [Generated during setup - check setup output above]\")
+    else:
+        print(\"No admin user found\")
+'" 2>&1)
+    
+    ADMIN_USERNAME=$(echo "$CRED_OUTPUT" | grep "Username:" | sed 's/^Username: //')
+fi
+
+# Always display the credentials section with what we have
+echo "🔑 IMPORTANT: ADMIN LOGIN CREDENTIALS"
+echo "============================================================"
 if [ -n "$ADMIN_USERNAME" ] && [ -n "$ADMIN_PASSWORD" ]; then
-    echo "🔑 IMPORTANT: ADMIN LOGIN CREDENTIALS"
-    echo "============================================================"
     echo "Username: $ADMIN_USERNAME"
     echo "Password: $ADMIN_PASSWORD"
     echo "============================================================"
     echo "⚠️  SAVE THIS PASSWORD - You will need it to log in!"
     echo "💡 Add your email address after first login in your profile."
-    echo "============================================================"
 else
-    echo "🔑 Admin Login:"
-    echo "- Admin credentials were created during setup"
-    echo "- Check the application logs for credentials"
+    echo "Username: admin"
+    echo "Password: [Check the setup output above for the generated password]"
+    echo "============================================================"
+    echo "⚠️  The admin password was displayed during the setup process above."
+    echo "💡 Look for 'Generated secure admin password' in the output above."
 fi
+echo "============================================================"
 echo ""
 echo "🌐 Login URL: http://$(hostname -I | awk '{print $1}'):8000/auth/login" 
