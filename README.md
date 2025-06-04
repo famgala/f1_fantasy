@@ -100,19 +100,19 @@ After installation, you'll receive admin credentials in this format:
 ============================================================
 🔑 IMPORTANT: ADMIN LOGIN CREDENTIALS
 ============================================================
-Email:    test@famgala.com
-Username: test
+Username: admin
 Password: [GENERATED_PASSWORD]
 ============================================================
 ⚠️  SAVE THIS PASSWORD - You will need it to log in!
+💡 Add your email address after first login in your profile.
 ============================================================
 ```
 
 **First Login Steps**:
 1. Navigate to `http://your-server:8000/auth/login`
-2. Use the provided email and password
+2. Use the provided username and password (leave email field empty)
 3. Access admin panel at `/admin`
-4. Update your profile and change password if desired
+4. Update your profile to add email address and change password if desired
 
 ## 🎮 Usage
 

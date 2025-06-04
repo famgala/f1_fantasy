@@ -286,8 +286,16 @@ with application.app_context():
     print(\"SQLite database initialized\")
 '"
 
-# Run initial setup
-sudo -u "$APP_USER" bash -c "source venv/bin/activate && FLASK_ENV=testing python f1_fantasy/setup.py" || true
+# Run initial setup and capture credentials
+echo "🔧 Running initial setup..."
+SETUP_OUTPUT=$(sudo -u "$APP_USER" bash -c "source venv/bin/activate && python -c '
+import os
+os.environ[\"FLASK_ENV\"] = \"testing\"
+from deploy.wsgi import application
+with application.app_context():
+    from f1_fantasy.setup import init_setup
+    init_setup(application)
+'" 2>&1 || echo "Setup completed")
 
 # Ensure admin user is properly configured for login
 echo "🔧 Finalizing admin user configuration..."
@@ -360,9 +368,17 @@ echo "🌐 Access your application:"
 echo "- URL: http://$(hostname -I | awk '{print $1}'):8000"
 echo "- Local: http://localhost:8000"
 echo ""
-echo "🔑 Admin Login:"
-echo "- Check the setup output above for your auto-generated admin credentials"
-echo "- Login URL: http://$(hostname -I | awk '{print $1}'):8000/auth/login"
+# Extract and display admin credentials
+ADMIN_CREDS=$(echo "$SETUP_OUTPUT" | sed -n '/🔑 IMPORTANT: ADMIN LOGIN CREDENTIALS/,/^=*$/p')
+if [ -n "$ADMIN_CREDS" ]; then
+    echo "$ADMIN_CREDS"
+else
+    echo "🔑 Admin Login:"
+    echo "- Admin credentials were created during setup"
+    echo "- Check the application logs if credentials were not displayed"
+fi
+echo ""
+echo "🌐 Login URL: http://$(hostname -I | awk '{print $1}'):8000/auth/login"
 echo ""
 echo "📁 Important paths:"
 echo "- Application: $APP_DIR"

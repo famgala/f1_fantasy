@@ -12,13 +12,10 @@ def init_setup(app):
     if not os.path.exists(setup_file):
         print("=== F1 Fantasy Setup Wizard ===")
         
-        # Create admin user
-        admin_email = "test@famgala.com"
-        admin_username = "test"
+        # Create admin user with username only
+        admin_username = "admin"
         admin_password = secrets.token_urlsafe(10)
         
-        print(f"Admin email address: {admin_email}")
-        print(f"Admin username: {admin_username}")
         print(f"✅ Generated secure admin password: {admin_password}")
         
         # Create roles
@@ -34,11 +31,10 @@ def init_setup(app):
         
         db.session.commit()
         
-        # Create admin user
-        existing_admin = User.query.filter_by(email=admin_email).first()
+        # Create admin user without email
+        existing_admin = User.query.filter_by(username=admin_username).first()
         if not existing_admin:
             admin = User(
-                email=admin_email,
                 username=admin_username,
                 password=hash_password(admin_password),
                 active=True,
@@ -48,17 +44,17 @@ def init_setup(app):
             admin.roles.append(admin_role)
             db.session.add(admin)
             db.session.commit()
-            print(f"Admin user created: {admin_email}")
+            print(f"Admin user created: {admin_username}")
         
         print("Setup completed successfully!")
         print("=" * 60)
         print("🔑 IMPORTANT: ADMIN LOGIN CREDENTIALS")
         print("=" * 60)
-        print(f"Email:    {admin_email}")
         print(f"Username: {admin_username}")
         print(f"Password: {admin_password}")
         print("=" * 60)
         print("⚠️  SAVE THIS PASSWORD - You will need it to log in!")
+        print("💡 Add your email address after first login in your profile.")
         print("=" * 60)
         
         # Mark setup as complete
