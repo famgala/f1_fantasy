@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
 
-# F1 Fantasy Test Stack Installation Script
-# This script clones the repository and sets up a complete test environment
+# F1 Fantasy Installation Script
+# This script clones the repository and sets up a complete F1 Fantasy environment
 
-echo "🏁 F1 Fantasy Test Stack Installation 🏁"
+echo "🏁 F1 Fantasy Installation 🏁"
 echo "=========================================="
 
 # Check for interactive mode flag
@@ -278,7 +278,7 @@ echo "🗃️ Initializing SQLite database..."
 cd "$APP_DIR"
 sudo -u "$APP_USER" bash -c "source venv/bin/activate && python -c '
 import os
-os.environ[\"FLASK_ENV\"] = \"testing\"
+os.environ[\"FLASK_ENV\"] = \"production\"
 from deploy.wsgi import application
 with application.app_context():
     from f1_fantasy.models import db
@@ -290,7 +290,7 @@ with application.app_context():
 echo "🔧 Running initial setup..."
 SETUP_OUTPUT=$(sudo -u "$APP_USER" bash -c "source venv/bin/activate && python -c '
 import os
-os.environ[\"FLASK_ENV\"] = \"testing\"
+os.environ[\"FLASK_ENV\"] = \"production\"
 from deploy.wsgi import application
 with application.app_context():
     from f1_fantasy.setup import init_setup
@@ -302,7 +302,7 @@ echo "🔧 Finalizing admin user configuration..."
 sudo -u "$APP_USER" bash -c "source venv/bin/activate && python -c '
 import os
 from datetime import datetime
-os.environ[\"FLASK_ENV\"] = \"testing\"
+os.environ[\"FLASK_ENV\"] = \"production\"
 from deploy.wsgi import application
 with application.app_context():
     from f1_fantasy.models import db, User, Role
@@ -351,38 +351,49 @@ systemctl start f1fantasy
 # Check service status
 sleep 2
 if systemctl is-active --quiet f1fantasy; then
-    echo "✅ F1 Fantasy Test Stack service is running"
+    echo "✅ F1 Fantasy service is running"
 else
-    echo "❌ F1 Fantasy Test Stack service failed to start"
+    echo "❌ F1 Fantasy service failed to start"
     systemctl status f1fantasy
 fi
 
 echo ""
-echo "🎉 Test Stack Installation Complete! 🎉"
-echo "======================================"
+echo "🎉 F1 Fantasy Installation Complete! 🎉"
+echo "======================================="
 echo ""
 echo "📊 Service Status:"
-echo "- F1 Fantasy Test Stack: $(systemctl is-active f1fantasy)"
+echo "- F1 Fantasy: $(systemctl is-active f1fantasy)"
 echo ""
 echo "🌐 Access your application:"
 echo "- URL: http://$(hostname -I | awk '{print $1}'):8000"
 echo "- Local: http://localhost:8000"
 echo ""
-# Extract and display admin credentials
-ADMIN_CREDS=$(echo "$SETUP_OUTPUT" | sed -n '/🔑 IMPORTANT: ADMIN LOGIN CREDENTIALS/,/============================================================/p')
-if [ -n "$ADMIN_CREDS" ]; then
-    echo "$ADMIN_CREDS"
+# Extract and display admin credentials at the very end
+ADMIN_USERNAME=$(echo "$SETUP_OUTPUT" | grep "Username:" | sed 's/^Username: //')
+ADMIN_PASSWORD=$(echo "$SETUP_OUTPUT" | grep "Password:" | sed 's/^Password: //')
+
+if [ -n "$ADMIN_USERNAME" ] && [ -n "$ADMIN_PASSWORD" ]; then
+    echo ""
+    echo "🔑 IMPORTANT: ADMIN LOGIN CREDENTIALS"
+    echo "============================================================"
+    echo "Username: $ADMIN_USERNAME"
+    echo "Password: $ADMIN_PASSWORD"
+    echo "============================================================"
+    echo "⚠️  SAVE THIS PASSWORD - You will need it to log in!"
+    echo "💡 Add your email address after first login in your profile."
+    echo "============================================================"
 else
+    echo ""
     echo "🔑 Admin Login:"
     echo "- Admin credentials were created during setup"
-    echo "- Check the application logs if credentials were not displayed"
+    echo "- Check the application logs for credentials"
 fi
 echo ""
 echo "🌐 Login URL: http://$(hostname -I | awk '{print $1}'):8000/auth/login"
 echo ""
 echo "📁 Important paths:"
 echo "- Application: $APP_DIR"
-echo "- Database: $DATA_DIR/f1fantasy_test.db"
+echo "- Database: $DATA_DIR/f1fantasy.db"
 echo "- Logs: $LOG_DIR"
 echo "- Config: $APP_DIR/.env"
 echo ""
@@ -390,11 +401,11 @@ echo "🔧 Useful commands:"
 echo "- View logs: sudo journalctl -u f1fantasy -f"
 echo "- Restart app: sudo systemctl restart f1fantasy"
 echo "- Check status: sudo systemctl status f1fantasy"
-echo "- Access database: sqlite3 $DATA_DIR/f1fantasy_test.db"
+echo "- Access database: sqlite3 $DATA_DIR/f1fantasy.db"
 echo ""
 echo "🔒 Security Notes:"
-echo "- Update the .env file with your actual configuration"
-echo "- This is a TEST STACK - not suitable for production"
+echo "- Application is ready to use with auto-generated configuration"
+echo "- To enable HTTPS, update .env file and set SESSION_COOKIE_SECURE=True"
 echo "- SQLite database is stored locally"
 echo "- Application is accessible on port 8000"
 echo "" 
