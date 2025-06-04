@@ -2,7 +2,7 @@
 set -e
 
 # F1 Fantasy Test Stack Installation Script
-# This script sets up a simple test environment with SQLite
+# This script clones the repository and sets up a complete test environment
 
 echo "🏁 F1 Fantasy Test Stack Installation 🏁"
 echo "=========================================="
@@ -36,6 +36,8 @@ APP_USER="f1fantasy"
 APP_DIR="/opt/f1fantasy"
 DATA_DIR="/opt/f1fantasy/data"
 LOG_DIR="/var/log/f1fantasy"
+REPO_URL="https://github.com/famgala/f1_fantasy.git"
+TEMP_DIR="/tmp/f1fantasy_install"
 
 echo "📦 Installing system dependencies..."
 
@@ -71,16 +73,36 @@ confirm_action "Create system directories (/opt/f1fantasy, /var/log/f1fantasy)" 
 mkdir -p "$APP_DIR" "$DATA_DIR" "$LOG_DIR"
 chown "$APP_USER:$APP_USER" "$APP_DIR" "$DATA_DIR" "$LOG_DIR"
 
-echo "📁 Copying application files..."
+echo "📥 Cloning F1 Fantasy repository..."
+
+# Clean up any existing temp directory
+rm -rf "$TEMP_DIR"
+
+# Clone the repository
+confirm_action "Clone F1 Fantasy repository from GitHub" "Downloads the latest F1 Fantasy code from the official repository"
+git clone "$REPO_URL" "$TEMP_DIR"
+
+echo "📁 Installing application files..."
 
 # Copy application to deployment directory
-if [ -f "$(pwd)/setup.py" ] && [ -d "$(pwd)/deploy" ]; then
-    confirm_action "Copy application files to system directory" "Copies your F1 Fantasy code to the system installation directory"
-    cp -r . "$APP_DIR/"
-    chown -R "$APP_USER:$APP_USER" "$APP_DIR"
-else
-    echo "❌ Please run this script from the F1 Fantasy project directory"
-    echo "Expected files: setup.py and deploy/ directory"
+confirm_action "Copy application files to system directory" "Copies the F1 Fantasy code to the system installation directory"
+cp -r "$TEMP_DIR"/* "$APP_DIR/"
+cp -r "$TEMP_DIR"/.* "$APP_DIR/" 2>/dev/null || true  # Copy hidden files like .gitignore
+chown -R "$APP_USER:$APP_USER" "$APP_DIR"
+
+# Clean up temp directory
+rm -rf "$TEMP_DIR"
+
+echo "🔧 Validating application structure..."
+
+# Ensure we have the required files
+if [ ! -f "$APP_DIR/requirements.txt" ]; then
+    echo "❌ Missing requirements.txt file in the repository"
+    exit 1
+fi
+
+if [ ! -d "$APP_DIR/deploy" ]; then
+    echo "❌ Missing deploy/ directory in the repository"
     exit 1
 fi
 
