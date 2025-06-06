@@ -1,0 +1,1 @@
+"""Views package for F1 Fantasy application.""" 

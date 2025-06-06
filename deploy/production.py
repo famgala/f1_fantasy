@@ -14,7 +14,7 @@ class ProductionConfig:
     
     # Database Configuration - Using SQLite for simplicity
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:////opt/f1fantasy/data/f1fantasy.db'
+        'sqlite:///f1_fantasy.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_recycle': 300,

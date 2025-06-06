@@ -16,19 +16,19 @@
                 </p>
                 {% if not current_user.is_authenticated %}
                     <div class="d-flex flex-column flex-sm-row gap-3">
-                        <a href="{{ url_for_security('register') }}" class="btn btn-light btn-lg">
+                        <a href="{{ url_for('security.register') }}" class="btn btn-light btn-lg">
                             <i class="fas fa-user-plus me-2"></i>Get Started
                         </a>
-                        <a href="{{ url_for_security('login') }}" class="btn btn-outline-light btn-lg">
+                        <a href="{{ url_for('security.login') }}" class="btn btn-outline-light btn-lg">
                             <i class="fas fa-sign-in-alt me-2"></i>Sign In
                         </a>
                     </div>
                 {% else %}
                     <div class="d-flex flex-column flex-sm-row gap-3">
-                        <a href="#" class="btn btn-light btn-lg">
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-light btn-lg">
                             <i class="fas fa-users me-2"></i>My Team
                         </a>
-                        <a href="#" class="btn btn-outline-light btn-lg">
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-light btn-lg">
                             <i class="fas fa-trophy me-2"></i>View Leagues
                         </a>
                     </div>
@@ -123,7 +123,7 @@
                                 </p>
                             </div>
                             <div class="col-md-4 text-md-end">
-                                <a href="#" class="btn btn-primary">
+                                <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">
                                     <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
                                 </a>
                             </div>
@@ -144,7 +144,7 @@
                 <p class="text-muted mb-4">
                     Join the F1 Fantasy community today and start building your championship-winning team.
                 </p>
-                <a href="{{ url_for_security('register') }}" class="btn btn-primary btn-lg">
+                <a href="{{ url_for('security.register') }}" class="btn btn-primary btn-lg">
                     <i class="fas fa-flag-checkered me-2"></i>Start Your Journey
                 </a>
             </div>

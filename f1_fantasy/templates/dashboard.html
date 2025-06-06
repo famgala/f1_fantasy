@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - F1 Fantasy{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Welcome Section -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="card-title h3 mb-3">
+                        <i class="fas fa-tachometer-alt me-2"></i>Welcome, {{ current_user.email }}
+                    </h1>
+                    <p class="card-text text-muted">
+                        Manage your F1 Fantasy team and track your performance.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-trophy me-2"></i>League Position
+                    </h5>
+                    <p class="display-4 mb-0">-</p>
+                    <small class="text-muted">No active leagues</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-users me-2"></i>Team Status
+                    </h5>
+                    <p class="display-4 mb-0">-</p>
+                    <small class="text-muted">No team created yet</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-coins me-2"></i>Budget
+                    </h5>
+                    <p class="display-4 mb-0">$0M</p>
+                    <small class="text-muted">Create a team to start</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Quick Actions</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="#" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Create Team
+                        </a>
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-search me-2"></i>Browse Drivers
+                        </a>
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-users me-2"></i>Join League
+                        </a>
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-chart-line me-2"></i>View Stats
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Recent Activity</h5>
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-info-circle fa-2x mb-3"></i>
+                        <p>No recent activity to display.</p>
+                        <p class="small">Start by creating your team or joining a league.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

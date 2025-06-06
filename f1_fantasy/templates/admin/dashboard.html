@@ -1,0 +1,178 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dashboard - {{ super() }}{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+        <h1 class="h2">Admin Dashboard</h1>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-users text-primary"></i>
+                        Users
+                    </h5>
+                    <p class="card-text display-4">{{ users|length }}</p>
+                    <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-primary">
+                        Manage Users
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-trophy text-success"></i>
+                        Leagues
+                    </h5>
+                    <p class="card-text display-4">{{ leagues|length }}</p>
+                    <a href="#" class="btn btn-sm btn-outline-success">
+                        View Leagues
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-flag-checkered text-danger"></i>
+                        Active Teams
+                    </h5>
+                    <p class="card-text display-4">{{ teams|length }}</p>
+                    <a href="#" class="btn btn-sm btn-outline-danger">
+                        View Teams
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a href="{{ url_for('admin.settings', category='general') }}" 
+                               class="btn btn-outline-primary w-100">
+                                <i class="fas fa-cog"></i>
+                                General Settings
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('admin.settings', category='smtp') }}" 
+                               class="btn btn-outline-info w-100">
+                                <i class="fas fa-envelope"></i>
+                                SMTP Settings
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('admin.settings', category='league') }}" 
+                               class="btn btn-outline-success w-100">
+                                <i class="fas fa-trophy"></i>
+                                League Settings
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('admin.users') }}" 
+                               class="btn btn-outline-warning w-100">
+                                <i class="fas fa-user-cog"></i>
+                                User Management
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-server"></i>
+                        System Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Component</th>
+                                    <th>Status</th>
+                                    <th>Last Check</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Database</td>
+                                    <td>
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i>
+                                            Connected
+                                        </span>
+                                    </td>
+                                    <td>{{ now() }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Email Service</td>
+                                    <td>
+                                        {% if smtp_configured %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check"></i>
+                                                Configured
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                                Not Configured
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ now() }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Maintenance Mode</td>
+                                    <td>
+                                        {% if maintenance_mode %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-lock"></i>
+                                                Enabled
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-unlock"></i>
+                                                Disabled
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ now() }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

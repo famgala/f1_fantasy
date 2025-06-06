@@ -26,16 +26,16 @@ confirm_action() {
     local reason="$2"
     
     if [ "$INTERACTIVE_MODE" = true ]; then
-        echo ""
-        echo "🔐 SUDO OPERATION REQUIRED:"
-        echo "Action: $action"
-        echo "Reason: $reason"
-        echo ""
-        read -p "Do you want to proceed? (y/N): " -n 1 -r
-        echo ""
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            echo "❌ Operation cancelled by user"
-            exit 1
+    echo ""
+    echo "🔐 SUDO OPERATION REQUIRED:"
+    echo "Action: $action"
+    echo "Reason: $reason"
+    echo ""
+    read -p "Do you want to proceed? (y/N): " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "❌ Operation cancelled by user"
+        exit 1
         fi
     else
         echo "▶️ $action"
@@ -100,7 +100,7 @@ echo "📁 Installing application files..."
 confirm_action "Copy application files to system directory" "Copies the F1 Fantasy code to the system installation directory"
 cp -r "$TEMP_DIR"/* "$APP_DIR/"
 cp -r "$TEMP_DIR"/.* "$APP_DIR/" 2>/dev/null || true  # Copy hidden files like .gitignore
-chown -R "$APP_USER:$APP_USER" "$APP_DIR"
+    chown -R "$APP_USER:$APP_USER" "$APP_DIR"
 
 # Clean up temp directory
 rm -rf "$TEMP_DIR"
@@ -293,5 +293,5 @@ else
     echo "💡 Look for 'Generated secure admin password' in the output above."
 fi
 echo "============================================================"
-echo ""
+echo "" 
 echo "🌐 Login URL: http://$(hostname -I | awk '{print $1}'):8000/auth/login" 
