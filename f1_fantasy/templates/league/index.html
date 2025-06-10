@@ -108,12 +108,14 @@
                             </thead>
                             <tbody>
                                 {% for league in public_leagues %}
-                                {% if league not in user_leagues %}
                                 <tr>
                                     <td>
                                         <a href="{{ url_for('league.view', league_id=league.id) }}">
                                             {{ league.name }}
                                         </a>
+                                        {% if league in user_leagues %}
+                                        <span class="badge bg-success">Member</span>
+                                        {% endif %}
                                     </td>
                                     <td>{{ league.teams.count() }}/{{ league.max_teams }}</td>
                                     <td>{{ league.draft_type|title }}</td>
@@ -125,20 +127,26 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if not league.is_full %}
-                                        <form action="{{ url_for('league.join', league_id=league.id) }}" 
-                                              method="POST" class="d-inline">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="btn btn-sm btn-primary">
-                                                Join League
-                                            </button>
-                                        </form>
+                                        {% if league not in user_leagues %}
+                                            {% if not league.is_full %}
+                                            <form action="{{ url_for('league.join', league_id=league.id) }}" 
+                                                  method="POST" class="d-inline">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-sm btn-primary">
+                                                    Join League
+                                                </button>
+                                            </form>
+                                            {% else %}
+                                            <span class="badge bg-danger">Full</span>
+                                            {% endif %}
                                         {% else %}
-                                        <span class="badge bg-danger">Full</span>
+                                            <a href="{{ url_for('league.view', league_id=league.id) }}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
                                         {% endif %}
                                     </td>
                                 </tr>
-                                {% endif %}
                                 {% endfor %}
                             </tbody>
                         </table>

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - F1 Fantasy{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="card-title h3 mb-0">{{ title }}</h1>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.csrf_token }}
+                        
+                        <div class="mb-3">
+                            {{ form.name.label(class="form-label") }}
+                            {{ form.name(class="form-control") }}
+                            {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.name.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('league.view', league_id=league.id) }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to League
+                            </a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

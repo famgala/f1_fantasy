@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - F1 Fantasy{% endblock %}
+
+{% block extra_head %}
+{{ super() }}
+<style>
+    .avatar-container {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 2rem;
+    }
+    .avatar-preview {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #dee2e6;
+    }
+    .avatar-upload {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: #fff;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .avatar-upload:hover {
+        background: #f8f9fa;
+    }
+    .avatar-upload input {
+        display: none;
+    }
+    .avatar-upload i {
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title mb-0">
+                        <i class="fas fa-user-cog me-2"></i>Profile Settings
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" class="needs-validation" enctype="multipart/form-data" novalidate>
+                        {{ form.csrf_token }}
+                        
+                        <!-- Avatar Upload -->
+                        <div class="text-center mb-4">
+                            <div class="avatar-container">
+                                {% if current_user.avatar %}
+                                    <img src="{{ url_for('static', filename='avatars/' + current_user.avatar) }}" 
+                                         alt="Profile Avatar" 
+                                         class="avatar-preview"
+                                         id="avatarPreview">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='img/default-avatar.png') }}" 
+                                         alt="Default Avatar" 
+                                         class="avatar-preview"
+                                         id="avatarPreview">
+                                {% endif %}
+                                <label class="avatar-upload" title="Change avatar">
+                                    <i class="fas fa-camera"></i>
+                                    {{ form.avatar(class="form-control", id="avatarInput", onchange="previewAvatar(this)") }}
+                                </label>
+                            </div>
+                            {% if form.avatar.errors %}
+                                <div class="invalid-feedback d-block text-center">
+                                    {% for error in form.avatar.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Username Field -->
+                        <div class="mb-3">
+                            {{ form.username.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                {{ form.username(class="form-control", placeholder="Enter your username") }}
+                            </div>
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.username.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Email Field -->
+                        <div class="mb-3">
+                            {{ form.email.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                {{ form.email(class="form-control", placeholder="Enter your email") }}
+                            </div>
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Password Fields -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-lock me-2"></i>Change Password
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">
+                                    Leave these fields empty if you don't want to change your password.
+                                </p>
+                                
+                                <div class="mb-3">
+                                    {{ form.password.label(class="form-label") }}
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-key"></i>
+                                        </span>
+                                        {{ form.password(class="form-control", placeholder="Enter new password") }}
+                                    </div>
+                                    {% if form.password.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.password.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    {{ form.confirm_password.label(class="form-label") }}
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-key"></i>
+                                        </span>
+                                        {{ form.confirm_password(class="form-control", placeholder="Confirm new password") }}
+                                    </div>
+                                    {% if form.confirm_password.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.confirm_password.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+function previewAvatar(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('avatarPreview').src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %} 

@@ -63,21 +63,9 @@
                         <dt class="col-sm-4">Max Teams</dt>
                         <dd class="col-sm-8">{{ league.teams.count() }}/{{ league.max_teams }}</dd>
                         
-                        <dt class="col-sm-4">Starting Budget</dt>
-                        <dd class="col-sm-8">${{ "%.2f"|format(league.budget) }}</dd>
-                        
-                        <dt class="col-sm-4">Trading</dt>
-                        <dd class="col-sm-8">
-                            {% if league.allow_trades %}
-                            <span class="badge bg-success">Enabled</span>
-                            {% if league.trade_deadline %}
-                            <br><small class="text-muted">Deadline: {{ league.trade_deadline.strftime('%Y-%m-%d %H:%M') }}</small>
-                            {% endif %}
-                            {% else %}
-                            <span class="badge bg-danger">Disabled</span>
-                            {% endif %}
-                        </dd>
-                        
+                        <dt class="col-sm-4">Point System</dt>
+                        <dd class="col-sm-8">{{ league.point_system|replace('_', ' ')|title }}</dd>
+
                         <dt class="col-sm-4">Draft Date</dt>
                         <dd class="col-sm-8">
                             {% if league.draft_date %}
@@ -212,30 +200,40 @@
 
     <!-- Delete League (Owner Only) -->
     {% if league.is_owner(current_user) %}
-    <div class="card border-danger">
-        <div class="card-header bg-danger text-white">
-            <h5 class="card-title mb-0">Danger Zone</h5>
+    <div class="card border-danger mt-4">
+        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center" 
+             style="cursor: pointer;" 
+             data-bs-toggle="collapse" 
+             data-bs-target="#dangerZone" 
+             aria-expanded="false" 
+             aria-controls="dangerZone">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i>Danger Zone
+            </h5>
+            <i class="fas fa-chevron-down"></i>
         </div>
-        <div class="card-body">
-            <h6>Delete League</h6>
-            <p class="text-danger">
-                <i class="fas fa-exclamation-triangle"></i>
-                This action cannot be undone. All teams, settings, and data will be permanently deleted.
-            </p>
-            <form action="{{ url_for('league.delete', league_id=league.id) }}" method="POST" 
-                  class="needs-validation" novalidate>
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="mb-3">
-                    <label for="confirm" class="form-label">
-                        Type the league name to confirm deletion
-                    </label>
-                    <input type="text" class="form-control" id="confirm" name="confirm" 
-                           placeholder="{{ league.name }}" required>
-                </div>
-                <button type="submit" class="btn btn-danger">
-                    <i class="fas fa-trash"></i> Delete League
-                </button>
-            </form>
+        <div class="collapse" id="dangerZone">
+            <div class="card-body">
+                <h6>Delete League</h6>
+                <p class="text-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    This action cannot be undone. All teams, settings, and data will be permanently deleted.
+                </p>
+                <form action="{{ url_for('league.delete', league_id=league.id) }}" method="POST" 
+                      class="needs-validation" novalidate>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="confirm" class="form-label">
+                            Type the league name to confirm deletion
+                        </label>
+                        <input type="text" class="form-control" id="confirm" name="confirm" 
+                               placeholder="{{ league.name }}" required>
+                    </div>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete League
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
     {% endif %}

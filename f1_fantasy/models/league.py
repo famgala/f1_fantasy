@@ -56,17 +56,14 @@ class League(db.Model):
     def __repr__(self):
         return f'<League {self.name}>'
 
-    @property
     def is_commissioner(self, user):
         """Check if a user is the commissioner of this league."""
         return user.id == self.commissioner_id
 
-    @property
     def is_owner(self, user):
         """Check if a user is the owner of this league."""
         return user.id == self.owner_id
 
-    @property
     def can_manage(self, user):
         """Check if a user can manage this league (owner or commissioner)."""
         return self.is_owner(user) or self.is_commissioner(user)

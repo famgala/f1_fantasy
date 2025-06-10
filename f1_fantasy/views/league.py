@@ -22,7 +22,8 @@ def index():
         return redirect(url_for('admin.index'))
     else:
         # Regular users only see their leagues and public leagues
-        user_leagues = current_user.leagues.all()
+        user_league_links = current_user.leagues.all()
+        user_leagues = [link.league for link in user_league_links]
         owned_leagues = current_user.owned_leagues.all()
         commissioned_leagues = current_user.commissioned_leagues.all()
         public_leagues = League.query.filter_by(is_public=True).all()
@@ -55,8 +56,7 @@ def create():
             db.session.flush()  # flush so that league.id is available
             league_member = LeagueMember(league_id=league.id, user_id=current_user.id, role='commissioner',
                                         can_edit_name=True, can_edit_description=True, can_edit_is_public=True,
-                                        can_edit_max_teams=True, can_edit_draft_type=True, can_edit_point_system=True,
-                                        can_edit_draft_date=True)
+                                        can_edit_max_teams=True, can_edit_draft_type=True, can_edit_point_system=True)
             db.session.add(league_member)
             db.session.commit()
             flash('League created successfully!', 'success')
@@ -76,7 +76,7 @@ def view(league_id):
         abort(403)
     
     teams = league.teams.all()
-    members = league.members.all()
+    members = [link.user for link in league.member_links]
     is_commissioner = league.is_commissioner(current_user)
     is_owner = league.is_owner(current_user)
     

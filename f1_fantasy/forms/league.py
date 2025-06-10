@@ -29,6 +29,12 @@ class LeagueForm(FlaskForm):
         ('points_race', 'Points Race (10th = 10, 9th/11th = 9, etc.)')
     ], validators=[DataRequired()])
     
+    status = SelectField('League Status', choices=[
+        ('setup', 'Setup'),
+        ('active', 'Active'),
+        ('completed', 'Completed')
+    ], default='setup', validators=[DataRequired()])
+    
     draft_date = DateTimeField('Draft Date',
                              format='%Y-%m-%d %H:%M',
                              validators=[Optional()],

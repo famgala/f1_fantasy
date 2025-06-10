@@ -23,6 +23,7 @@ class User(db.Model, UserMixin):
     active = db.Column(db.Boolean(), default=True)
     fs_uniquifier = db.Column(db.String(255), unique=True, nullable=False)
     confirmed_at = db.Column(db.DateTime())
+    avatar = db.Column(db.String(255), nullable=True)  # Store the filename of the avatar
     
     # Flask-Security tracking fields
     last_login_at = db.Column(db.DateTime())
