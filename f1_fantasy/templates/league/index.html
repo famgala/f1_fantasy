@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}My Leagues{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>My Leagues</h1>
+        <a href="{{ url_for('league.create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create New League
+        </a>
+    </div>
+
+    <!-- My Leagues -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">My Leagues</h5>
+                </div>
+                <div class="card-body">
+                    {% if user_leagues %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th>Teams</th>
+                                    <th>Draft Type</th>
+                                    <th>Draft Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for league in user_leagues %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('league.view', league_id=league.id) }}">
+                                            {{ league.name }}
+                                        </a>
+                                        {% if league.is_owner(current_user) %}
+                                        <span class="badge bg-primary">Owner</span>
+                                        {% elif league.is_commissioner(current_user) %}
+                                        <span class="badge bg-info">Commissioner</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if league.status == 'active' else 'warning' }}">
+                                            {{ league.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>{{ league.teams.count() }}/{{ league.max_teams }}</td>
+                                    <td>{{ league.draft_type|title }}</td>
+                                    <td>
+                                        {% if league.draft_date %}
+                                        {{ league.draft_date.strftime('%Y-%m-%d %H:%M') }}
+                                        {% else %}
+                                        <span class="text-muted">Not set</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('league.view', league_id=league.id) }}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if league.can_manage(current_user) %}
+                                            <a href="{{ url_for('league.edit', league_id=league.id) }}" 
+                                               class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">You are not a member of any leagues yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Public Leagues -->
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Public Leagues</h5>
+                </div>
+                <div class="card-body">
+                    {% if public_leagues %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Teams</th>
+                                    <th>Draft Type</th>
+                                    <th>Draft Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for league in public_leagues %}
+                                {% if league not in user_leagues %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('league.view', league_id=league.id) }}">
+                                            {{ league.name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ league.teams.count() }}/{{ league.max_teams }}</td>
+                                    <td>{{ league.draft_type|title }}</td>
+                                    <td>
+                                        {% if league.draft_date %}
+                                        {{ league.draft_date.strftime('%Y-%m-%d %H:%M') }}
+                                        {% else %}
+                                        <span class="text-muted">Not set</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if not league.is_full %}
+                                        <form action="{{ url_for('league.join', league_id=league.id) }}" 
+                                              method="POST" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-primary">
+                                                Join League
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <span class="badge bg-danger">Full</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No public leagues available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

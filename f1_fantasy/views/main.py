@@ -7,6 +7,8 @@ bp = Blueprint('main', __name__)
 def index():
     """Public landing page."""
     if current_user.is_authenticated:
+        if current_user.has_role('admin'):
+            return redirect(url_for('admin.index'))
         return redirect(url_for('main.dashboard'))
     return render_template('index.html')
 
@@ -14,6 +16,8 @@ def index():
 @login_required
 def dashboard():
     """Main dashboard view for authenticated users."""
+    if current_user.has_role('admin'):
+        return redirect(url_for('admin.index'))
     return render_template('dashboard.html')
 
 @bp.route('/admin')

@@ -33,3 +33,8 @@ class User(db.Model, UserMixin):
     
     roles = db.relationship('Role', secondary=user_roles,
                           backref=db.backref('users', lazy='dynamic')) 
+    # Relationship to LeagueMember for user's leagues
+    leagues = db.relationship('LeagueMember', back_populates='user', lazy='dynamic', cascade='all, delete-orphan')
+
+    def has_role(self, role_name):
+        return any(role.name == role_name for role in self.roles) 

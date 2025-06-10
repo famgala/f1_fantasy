@@ -1,7 +1,8 @@
 import secrets
 import logging
 from datetime import datetime
-from flask import Flask, request, current_app
+from flask import Flask, request, current_app, redirect, url_for
+from flask_login import current_user
 from flask_security import Security, SQLAlchemyUserDatastore, hash_password, verify_password
 from f1_fantasy.models import db, User, Role
 
@@ -23,8 +24,8 @@ def init_security(app: Flask) -> None:
         SECURITY_CONFIRMABLE=False,
         SECURITY_TRACKABLE=True,
         SECURITY_PASSWORD_HASH='bcrypt',
-        SECURITY_USERNAME_ENABLE=False,
-        SECURITY_USERNAME_REQUIRED=False,
+        SECURITY_USERNAME_ENABLE=True,
+        SECURITY_USERNAME_REQUIRED=True,
         SECURITY_USER_IDENTITY_ATTRIBUTES=[
             {"email": {"mapper": lambda x: x.lower(), "case_insensitive": True}}
         ],
@@ -38,6 +39,18 @@ def init_security(app: Flask) -> None:
     # Initialize security first
     security.init_app(app, user_datastore)
     
+    # Add user creation hook to generate username from email
+    @app.before_request
+    def before_request():
+        if request.endpoint == 'security.register' and request.method == 'POST':
+            email = request.form.get('email', '').lower()
+            if email:
+                # Generate username from email (everything before @)
+                username = email.split('@')[0]
+                # Add form data to request
+                request.form = request.form.copy()
+                request.form['username'] = username
+
     # Add request logging for login attempts - only after security is initialized
     @app.before_request
     def log_request_info():
@@ -79,6 +92,18 @@ def init_security(app: Flask) -> None:
                 logger.debug(f'Response headers: {dict(response.headers)}')
                 # Log the response body for debugging
                 logger.debug(f'Response body: {response.get_data(as_text=True)[:200]}...')
+        return response
+
+    # Add post-login handler to redirect admins
+    @app.after_request
+    def post_login_handler(response):
+        if (not app.config.get('TESTING') and 
+            request.path == '/auth/login' and 
+            request.method == 'POST' and 
+            response.status_code == 302 and  # Successful login redirect
+            current_user.is_authenticated and 
+            current_user.has_role('admin')):
+            return redirect(url_for('admin.index'))
         return response
 
 def create_default_roles():

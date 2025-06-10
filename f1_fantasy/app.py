@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, url_for
 from flask_security import current_user, login_required
 from flask_wtf.csrf import CSRFProtect
+from flask_migrate import Migrate
 from f1_fantasy.models import db, User, Role, Settings, League, Team
 from f1_fantasy.security import init_security, create_default_roles
 from f1_fantasy.setup import init_setup
@@ -9,10 +10,17 @@ import logging
 from f1_fantasy.views.main import bp as main_bp
 from f1_fantasy.views.auth import bp as auth_bp
 from f1_fantasy.views.admin import bp as admin_bp
+from f1_fantasy.views.league import bp as league_bp
 import click
 
-def create_app(config_name='development'):
+# Initialize Flask-Migrate
+migrate = Migrate()
+
+def create_app(config_name=None):
     """Create and configure the Flask application."""
+    if config_name is None:
+        config_name = os.getenv('FLASK_ENV', 'development')
+    
     app = Flask(__name__, instance_relative_config=True)
     
     # Load configuration
@@ -47,6 +55,7 @@ def create_app(config_name='development'):
     
     # Initialize extensions
     db.init_app(app)
+    migrate.init_app(app, db)  # Initialize Flask-Migrate
     
     # Create database tables
     with app.app_context():
@@ -66,6 +75,7 @@ def create_app(config_name='development'):
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(league_bp)
     
     # Add CLI commands
     @app.cli.command('check-roles')
