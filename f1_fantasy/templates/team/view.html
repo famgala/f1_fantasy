@@ -65,7 +65,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for team in team.league.teams.order_by(Team.points.desc()).all() %}
+                                {% for team in sorted_teams %}
                                 <tr {% if team.id == team.id %}class="table-primary"{% endif %}>
                                     <td>{{ loop.index }}</td>
                                     <td>{{ team.name }}</td>

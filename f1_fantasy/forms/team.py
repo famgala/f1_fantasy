@@ -10,6 +10,10 @@ class TeamForm(FlaskForm):
     ])
     submit = SubmitField('Save Team')
 
+    def __init__(self, league=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.league = league
+
     def validate_name(self, field):
         """Validate that the team name is unique within the league."""
         from f1_fantasy.models import Team

@@ -46,9 +46,9 @@ class League(db.Model):
     
     # Relationships
     owner = db.relationship('User', foreign_keys=[owner_id], 
-                          backref=db.backref('owned_leagues', lazy='dynamic'))
+                          back_populates='owned_leagues')
     commissioner = db.relationship('User', foreign_keys=[commissioner_id],
-                                 backref=db.backref('commissioned_leagues', lazy='dynamic'))
+                                 back_populates='commissioned_leagues')
     teams = db.relationship('Team', backref='league', lazy='dynamic', cascade='all, delete-orphan')
     member_links = db.relationship('LeagueMember', back_populates='league', cascade='all, delete-orphan')
     members = association_proxy('member_links', 'user')

@@ -13,6 +13,7 @@ from f1_fantasy.views.admin import bp as admin_bp
 from f1_fantasy.views.league import bp as league_bp
 from f1_fantasy.views.team import bp as team_bp
 import click
+from f1_fantasy.extensions import mail
 
 # Initialize Flask-Migrate
 migrate = Migrate()
@@ -57,6 +58,7 @@ def create_app(config_name=None):
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)  # Initialize Flask-Migrate
+    mail.init_app(app)
     
     # Create database tables
     with app.app_context():

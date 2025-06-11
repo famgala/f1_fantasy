@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, BooleanField, IntegerField, FloatField, DateTimeField, SelectField, SubmitField
-from wtforms.validators import DataRequired, Optional, NumberRange, Length, ValidationError
+from wtforms.validators import DataRequired, Optional, NumberRange, Length, ValidationError, Email
 
 class LeagueForm(FlaskForm):
     """Form for creating and editing leagues."""
@@ -56,18 +56,47 @@ class LeagueForm(FlaskForm):
 
 class LeagueInviteForm(FlaskForm):
     """Form for inviting users to a league."""
+    invite_type = SelectField('Invite Type', choices=[
+        ('email', 'Email Address'),
+        ('username', 'Username')
+    ], validators=[DataRequired()])
+    
     email = StringField('Email', validators=[
-        DataRequired(),
-        Length(max=120, message='Email cannot exceed 120 characters')
+        Optional(),
+        Length(max=120, message='Email cannot exceed 120 characters'),
+        Email(message='Please enter a valid email address')
     ])
+    
+    username = StringField('Username', validators=[
+        Optional(),
+        Length(max=80, message='Username cannot exceed 80 characters')
+    ])
+    
     role = SelectField('Role', choices=[
         ('member', 'Member'),
         ('commissioner', 'Commissioner')
     ], validators=[DataRequired()])
+    
     can_edit_name = BooleanField('Can Edit Name')
     can_edit_description = BooleanField('Can Edit Description')
     can_edit_is_public = BooleanField('Can Edit Public/Private')
     can_edit_max_teams = BooleanField('Can Edit Max Teams')
     can_edit_draft_type = BooleanField('Can Edit Draft Type')
     can_edit_point_system = BooleanField('Can Edit Point System')
-    submit = SubmitField('Send Invite') 
+    
+    submit = SubmitField('Send Invite')
+
+    def validate(self):
+        """Validate that either email or username is provided based on invite type."""
+        if not super().validate():
+            return False
+        
+        if self.invite_type.data == 'email' and not self.email.data:
+            self.email.errors.append('Email is required for email invites')
+            return False
+        
+        if self.invite_type.data == 'username' and not self.username.data:
+            self.username.errors.append('Username is required for username invites')
+            return False
+        
+        return True 

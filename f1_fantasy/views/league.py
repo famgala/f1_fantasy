@@ -1,10 +1,13 @@
 from datetime import datetime
-from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
+from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, current_app
 from flask_login import login_required, current_user
 from flask_security import roles_required
 from f1_fantasy.models import db, League, User, Team, LeagueMember
 from f1_fantasy.forms.league import LeagueForm, LeagueInviteForm
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import or_
+from ..utils.tokens import generate_invite_token
+from ..utils.email import send_invite_email
 
 bp = Blueprint('league', __name__, url_prefix='/league')
 
@@ -140,39 +143,146 @@ def delete(league_id):
 @bp.route('/<int:league_id>/invite', methods=['GET', 'POST'])
 @login_required
 def invite(league_id):
-    """Invite a user to join the league."""
+    """Invite a user to the league."""
     league = League.query.get_or_404(league_id)
-    if not league.can_manage(current_user):
-        abort(403)
     
-    if league.is_full:
-        flash('League is full.', 'error')
-        return redirect(url_for('league.view', league_id=league.id))
+    if not league.can_manage(current_user):
+        flash('You do not have permission to invite users to this league.', 'error')
+        return redirect(url_for('league.view', league_id=league_id))
     
     form = LeagueInviteForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if not user:
-            flash('User not found.', 'error')
-        elif user in league.members:
-            flash('User is already a member.', 'error')
-        else:
-            league_member = LeagueMember(league_id=league.id, user_id=user.id, role=form.role.data)
-            if form.role.data == 'commissioner':
-                league_member.can_edit_name = form.can_edit_name.data
-                league_member.can_edit_description = form.can_edit_description.data
-                league_member.can_edit_is_public = form.can_edit_is_public.data
-                league_member.can_edit_max_teams = form.can_edit_max_teams.data
-                league_member.can_edit_draft_type = form.can_edit_draft_type.data
-                league_member.can_edit_point_system = form.can_edit_point_system.data
-            db.session.add(league_member)
-            db.session.commit()
-            flash('User invited successfully!', 'success')
-            return redirect(url_for('league.view', league_id=league.id))
     
-    return render_template('league/invite.html',
-                         form=form,
-                         league=league)
+    if form.validate_on_submit():
+        if form.invite_type.data == 'username':
+            # Handle username invite
+            user = User.query.filter_by(username=form.username.data).first()
+            if not user:
+                flash('User not found.', 'error')
+                return render_template('league/invite.html', league=league, form=form)
+            
+            if not user.is_searchable:
+                flash('This user is not accepting invites.', 'error')
+                return render_template('league/invite.html', league=league, form=form)
+            
+            if league.is_member(user):
+                flash('User is already a member of this league.', 'error')
+                return render_template('league/invite.html', league=league, form=form)
+            
+            # Add invite to user's pending invites
+            invite_data = {
+                'league_id': league.id,
+                'league_name': league.name,
+                'role': form.role.data,
+                'permissions': {
+                    'can_edit_name': form.can_edit_name.data,
+                    'can_edit_description': form.can_edit_description.data,
+                    'can_edit_is_public': form.can_edit_is_public.data,
+                    'can_edit_max_teams': form.can_edit_max_teams.data,
+                    'can_edit_draft_type': form.can_edit_draft_type.data,
+                    'can_edit_point_system': form.can_edit_point_system.data
+                }
+            }
+            user.add_pending_invite(invite_data)
+            db.session.commit()
+            
+            flash(f'Invite sent to {user.username}.', 'success')
+            
+        else:  # email invite
+            # Check if user exists
+            user = User.query.filter_by(email=form.email.data).first()
+            
+            if user:
+                if not user.is_searchable:
+                    flash('This user is not accepting invites.', 'error')
+                    return render_template('league/invite.html', league=league, form=form)
+                
+                if league.is_member(user):
+                    flash('User is already a member of this league.', 'error')
+                    return render_template('league/invite.html', league=league, form=form)
+                
+                # Add invite to user's pending invites
+                invite_data = {
+                    'league_id': league.id,
+                    'league_name': league.name,
+                    'role': form.role.data,
+                    'permissions': {
+                        'can_edit_name': form.can_edit_name.data,
+                        'can_edit_description': form.can_edit_description.data,
+                        'can_edit_is_public': form.can_edit_is_public.data,
+                        'can_edit_max_teams': form.can_edit_max_teams.data,
+                        'can_edit_draft_type': form.can_edit_draft_type.data,
+                        'can_edit_point_system': form.can_edit_point_system.data
+                    }
+                }
+                user.add_pending_invite(invite_data)
+                db.session.commit()
+                
+                flash(f'Invite sent to {user.email}.', 'success')
+                
+            else:
+                # Generate JWT token for unregistered user
+                token = generate_invite_token(
+                    league_id=league.id,
+                    email=form.email.data,
+                    role=form.role.data,
+                    permissions={
+                        'can_edit_name': form.can_edit_name.data,
+                        'can_edit_description': form.can_edit_description.data,
+                        'can_edit_is_public': form.can_edit_is_public.data,
+                        'can_edit_max_teams': form.can_edit_max_teams.data,
+                        'can_edit_draft_type': form.can_edit_draft_type.data,
+                        'can_edit_point_system': form.can_edit_point_system.data
+                    }
+                )
+                
+                # Send email with registration link
+                invite_url = url_for('auth.register', token=token, _external=True)
+                send_invite_email(
+                    email=form.email.data,
+                    league_name=league.name,
+                    invite_url=invite_url
+                )
+                
+                flash(f'Invitation email sent to {form.email.data}.', 'success')
+        
+        return redirect(url_for('league.view', league_id=league_id))
+    
+    return render_template('league/invite.html', league=league, form=form)
+
+@bp.route('/<int:league_id>/search-users')
+@login_required
+def search_users(league_id):
+    """Search for users to invite to the league."""
+    league = League.query.get_or_404(league_id)
+    
+    if not league.can_manage(current_user):
+        return {'error': 'Permission denied'}, 403
+    
+    query = request.args.get('q', '').strip()
+    if not query or len(query) < 3:
+        return {'users': []}
+    
+    # Search for users by username or email
+    users = User.query.filter(
+        User.is_active == True,
+        User.visibility == 'public',
+        or_(
+            User.username.ilike(f'%{query}%'),
+            User.email.ilike(f'%{query}%')
+        )
+    ).limit(10).all()
+    
+    # Filter out users who are already members
+    results = []
+    for user in users:
+        if not league.is_member(user):
+            results.append({
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
+            })
+    
+    return {'users': results}
 
 @bp.route('/<int:league_id>/members/<int:user_id>/remove', methods=['POST'])
 @login_required

@@ -27,7 +27,7 @@ def create(league_id):
         flash('This league is full.', 'error')
         return redirect(url_for('league.view', league_id=league.id))
     
-    form = TeamForm()
+    form = TeamForm(league=league)
     if form.validate_on_submit():
         team = Team(
             name=form.name.data,
@@ -51,4 +51,7 @@ def view(team_id):
     if not team.league.is_public and current_user not in team.league.members:
         abort(403)
     
-    return render_template('team/view.html', team=team) 
+    # Get sorted teams for the standings table
+    sorted_teams = sorted(team.league.teams.all(), key=lambda t: t.points, reverse=True)
+    
+    return render_template('team/view.html', team=team, sorted_teams=sorted_teams) 

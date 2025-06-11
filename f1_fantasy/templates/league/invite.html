@@ -4,48 +4,181 @@
 
 {% block content %}
 <div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Invite to {{ league.name }}</h5>
+    <h1>Invite to {{ league.name }}</h1>
+    
+    <div class="card mt-4">
+        <div class="card-body">
+            <form method="POST">
+                {{ form.csrf_token }}
+                
+                <div class="mb-3">
+                    {{ form.invite_type.label(class="form-label") }}
+                    {{ form.invite_type(class="form-select") }}
+                    {% if form.invite_type.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.invite_type.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
-                <div class="card-body">
-                    <form method="POST" class="needs-validation" novalidate>
-                        {{ form.csrf_token }}
-                        
-                        <!-- Email -->
-                        <div class="mb-3">
-                            {{ form.email.label(class="form-label") }}
-                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
-                            {% if form.email.description %}
-                            <div class="form-text">{{ form.email.description }}</div>
-                            {% endif %}
+                
+                <div id="username-section" class="mb-3">
+                    <label class="form-label">Search Users</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="user-search" placeholder="Search by username or email...">
+                        <button class="btn btn-outline-secondary" type="button" id="search-button">Search</button>
+                    </div>
+                    <div id="search-results" class="list-group mt-2" style="display: none;"></div>
+                    
+                    {{ form.username.label(class="form-label mt-3") }}
+                    {{ form.username(class="form-control", readonly=true) }}
+                    {% if form.username.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.username.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div id="email-section" class="mb-3">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control") }}
+                    {% if form.email.errors %}
+                        <div class="invalid-feedback d-block">
                             {% for error in form.email.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
+                                {{ error }}
                             {% endfor %}
                         </div>
-                        
-                        <!-- Role -->
-                        <div class="mb-3">
-                            {{ form.role.label(class="form-label") }}
-                            {{ form.role(class="form-select" + (" is-invalid" if form.role.errors else "")) }}
-                            {% if form.role.description %}
-                            <div class="form-text">{{ form.role.description }}</div>
-                            {% endif %}
-                            {% for error in form.role.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        
-                        <div class="d-flex justify-content-between mt-4">
-                            <a href="{{ url_for('league.view', league_id=league.id) }}" class="btn btn-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Send Invitation</button>
-                        </div>
-                    </form>
+                    {% endif %}
                 </div>
-            </div>
+                
+                <div class="mb-3">
+                    {{ form.role.label(class="form-label") }}
+                    {{ form.role(class="form-select") }}
+                    {% if form.role.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.role.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <h5>Permissions</h5>
+                    <div class="form-check">
+                        {{ form.can_edit_name(class="form-check-input") }}
+                        {{ form.can_edit_name.label(class="form-check-label") }}
+                    </div>
+                    <div class="form-check">
+                        {{ form.can_edit_description(class="form-check-input") }}
+                        {{ form.can_edit_description.label(class="form-check-label") }}
+                    </div>
+                    <div class="form-check">
+                        {{ form.can_edit_is_public(class="form-check-input") }}
+                        {{ form.can_edit_is_public.label(class="form-check-label") }}
+                    </div>
+                    <div class="form-check">
+                        {{ form.can_edit_max_teams(class="form-check-input") }}
+                        {{ form.can_edit_max_teams.label(class="form-check-label") }}
+                    </div>
+                    <div class="form-check">
+                        {{ form.can_edit_draft_type(class="form-check-input") }}
+                        {{ form.can_edit_draft_type.label(class="form-check-label") }}
+                    </div>
+                    <div class="form-check">
+                        {{ form.can_edit_point_system(class="form-check-input") }}
+                        {{ form.can_edit_point_system.label(class="form-check-label") }}
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <a href="{{ url_for('league.view', league_id=league.id) }}" class="btn btn-secondary">Cancel</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inviteType = document.getElementById('invite_type');
+    const usernameSection = document.getElementById('username-section');
+    const emailSection = document.getElementById('email-section');
+    const userSearch = document.getElementById('user-search');
+    const searchButton = document.getElementById('search-button');
+    const searchResults = document.getElementById('search-results');
+    const usernameInput = document.getElementById('username');
+    
+    function updateSections() {
+        if (inviteType.value === 'username') {
+            usernameSection.style.display = 'block';
+            emailSection.style.display = 'none';
+        } else {
+            usernameSection.style.display = 'none';
+            emailSection.style.display = 'block';
+        }
+    }
+    
+    inviteType.addEventListener('change', updateSections);
+    updateSections();
+    
+    let searchTimeout;
+    userSearch.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(performSearch, 300);
+    });
+    
+    searchButton.addEventListener('click', performSearch);
+    
+    function performSearch() {
+        const query = userSearch.value.trim();
+        if (query.length < 3) {
+            searchResults.style.display = 'none';
+            return;
+        }
+        
+        fetch(`{{ url_for('league.search_users', league_id=league.id) }}?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                searchResults.innerHTML = '';
+                if (data.users.length === 0) {
+                    searchResults.style.display = 'none';
+                    return;
+                }
+                
+                data.users.forEach(user => {
+                    const item = document.createElement('a');
+                    item.href = '#';
+                    item.className = 'list-group-item list-group-item-action';
+                    item.textContent = `${user.username} (${user.email})`;
+                    item.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        usernameInput.value = user.username;
+                        searchResults.style.display = 'none';
+                        userSearch.value = '';
+                    });
+                    searchResults.appendChild(item);
+                });
+                
+                searchResults.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error searching users:', error);
+            });
+    }
+    
+    // Hide search results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchResults.contains(e.target) && e.target !== userSearch && e.target !== searchButton) {
+            searchResults.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}
 {% endblock %} 
