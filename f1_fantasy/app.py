@@ -2,9 +2,10 @@ from flask import Flask, render_template, redirect, url_for
 from flask_security import current_user, login_required
 from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
-from f1_fantasy.models import db, User, Role, Settings, League, Team
-from f1_fantasy.security import init_security, create_default_roles
+from f1_fantasy.models import db, User, Role, Settings, League, Team, LeagueMember, Race, Driver
+from f1_fantasy.security import init_security, create_default_roles, security, user_datastore
 from f1_fantasy.setup import init_setup
+from f1_fantasy.management.import_f1_data import init_app as init_import_f1_data
 import os
 import logging
 from f1_fantasy.views.main import bp as main_bp
@@ -59,20 +60,23 @@ def create_app(config_name=None):
     db.init_app(app)
     migrate.init_app(app, db)  # Initialize Flask-Migrate
     mail.init_app(app)
+    # Initialize CSRF protection
+    csrf = CSRFProtect(app)
+    # Set up security config and hooks
+    init_security(app)
+    # Now initialize Flask-Security (only once, here)
+    security.init_app(app, user_datastore)
     
     # Create database tables
     with app.app_context():
         db.create_all()
         app.logger.info("Database tables created successfully")
     
-    # Initialize CSRF protection
-    csrf = CSRFProtect(app)
-    
-    # Initialize security
-    init_security(app)
-    
     # Initialize setup wizard
     init_setup(app)
+    
+    # Initialize management commands
+    init_import_f1_data(app)
     
     # Register blueprints
     app.register_blueprint(main_bp)

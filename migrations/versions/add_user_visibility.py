@@ -16,11 +16,13 @@ depends_on = None
 
 def upgrade():
     # Add visibility column
-    op.add_column('users', sa.Column('visibility', sa.String(20), nullable=False, server_default='public'))
+    # op.add_column('users', sa.Column('visibility', sa.String(20), nullable=False, server_default='public'))
     
     # Add pending_invites column
-    op.add_column('users', sa.Column('pending_invites', sa.JSON(), nullable=False, server_default='[]'))
+    # op.add_column('users', sa.Column('pending_invites', sa.JSON(), nullable=False, server_default='[]'))
+    pass
 
 def downgrade():
-    op.drop_column('users', 'pending_invites')
-    op.drop_column('users', 'visibility') 
+    # op.drop_column('users', 'pending_invites')
+    # op.drop_column('users', 'visibility')
+    pass 

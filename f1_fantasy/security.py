@@ -12,7 +12,7 @@ security = Security()
 logger = logging.getLogger('flask_security')
 
 def init_security(app: Flask) -> None:
-    """Initialize security for the Flask application."""
+    """Initialize security config and hooks for the Flask application."""
     app.config.update(
         SECURITY_URL_PREFIX='/auth',
         SECURITY_LOGIN_URL='/login',
@@ -35,11 +35,9 @@ def init_security(app: Flask) -> None:
         SECURITY_SEND_PASSWORD_CHANGE_EMAIL=False,
         SECURITY_SEND_PASSWORD_RESET_EMAIL=False,
     )
+    # Do NOT call security.init_app here!
+    # Only set up hooks and config.
     
-    # Initialize security first
-    security.init_app(app, user_datastore)
-    
-    # Add user creation hook to generate username from email
     @app.before_request
     def before_request():
         if request.endpoint == 'security.register' and request.method == 'POST':
